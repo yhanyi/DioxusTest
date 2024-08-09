@@ -7,6 +7,8 @@ pub struct Comment {
     pub id: i64,
     #[serde(default)]
     pub by: String,
+    #[serde(default)]
+    pub text: String,
     #[serde(with = "chrono::serde::ts_seconds")]
     pub time: DateTime<Utc>,
     #[serde(default)]
@@ -59,7 +61,7 @@ pub fn StoryListing(story: ReadOnlySignal<StoryItem>) -> Element {
     });
     let time = time.format("%D %l:%M %p");
     rsx! {
-        div { padding: "0.5rem", position: "relative", font_family: "Arial, sans-serif",
+        div { padding: "0.5rem", position: "relative",
             div { font_size: "1.5rem",
                 a { href: url, "{title}" }
                 a {
