@@ -2,6 +2,24 @@ use dioxus::prelude::*;
 use chrono::{ DateTime, Utc };
 use serde::{ Deserialize, Serialize };
 use crate::components::preview::PreviewState;
+use crate::components::api::get_story;
+
+async fn resolve_story(
+    mut full_story: Signal<Option<StoryPageData>>,
+    mut preview_state: Signal<PreviewState>,
+    story_id: i64
+) {
+    if let Some(cached) = full_story.as_ref() {
+        *preview_state.write() = PreviewState::Loaded(cached.clone());
+        return;
+    }
+
+    *preview_state.write() = PreviewState::Loading;
+    if let Ok(story) = get_story(story_id).await {
+        *preview_state.write() = PreviewState::Loaded(story.clone());
+        *full_story.write() = Some(story);
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
@@ -48,14 +66,17 @@ pub struct StoryPageData {
 
 #[component]
 pub fn StoryListing(story: ReadOnlySignal<StoryItem>) -> Element {
-    let mut preview_state = consume_context::<Signal<PreviewState>>();
-    let StoryItem { title, url, by, score, time, children, .. } = &*story.read();
+    let preview_state = consume_context::<Signal<PreviewState>>();
+    let StoryItem { title, url, by, score, time, children, id, .. } = story();
+    // New
+    let full_story = use_signal(|| None);
+
     let url = url.as_deref().unwrap_or_default();
     let hostname = url
         .trim_start_matches("https://")
         .trim_start_matches("http://")
         .trim_start_matches("www.");
-    let score = format!("{score} {}", if *score == 1 { " point" } else { " points" });
+    let score = format!("{score} {}", if score == 1 { " point" } else { " points" });
     let comments = format!("{} {}", children.len(), if children.len() == 1 {
         " comment"
     } else {
@@ -63,14 +84,11 @@ pub fn StoryListing(story: ReadOnlySignal<StoryItem>) -> Element {
     });
     let time = time.format("%D %l:%M %p");
     rsx! {
-        div { padding: "0.5rem", position: "relative", onmouseenter: move |_| {},
+        div { padding: "0.5rem", position: "relative", onmouseenter: move |_| {resolve_story(full_story, preview_state, id)},
             div { font_size: "1.5rem",
-                a { href: url, onfocus: move |_event| {
-                  *preview_state.write() = PreviewState::Loaded(StoryPageData {
-                    item: story(),
-                    comments: vec![],
-                  });
-                }, "{title}" }
+                a { href: url,
+                  onfocus: move |_event| {resolve_story(full_story, preview_state, id)}
+                , "{title}" }
                 a {
                     color: "gray",
                     href: "https://news.ycombinator.com/from?site={hostname}",
