@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use chrono::{ DateTime, Utc };
 use serde::{ Deserialize, Serialize };
+use crate::components::preview::PreviewState;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
@@ -47,6 +48,7 @@ pub struct StoryPageData {
 
 #[component]
 pub fn StoryListing(story: ReadOnlySignal<StoryItem>) -> Element {
+    let mut preview_state = consume_context::<Signal<PreviewState>>();
     let StoryItem { title, url, by, score, time, children, .. } = &*story.read();
     let url = url.as_deref().unwrap_or_default();
     let hostname = url
@@ -61,9 +63,14 @@ pub fn StoryListing(story: ReadOnlySignal<StoryItem>) -> Element {
     });
     let time = time.format("%D %l:%M %p");
     rsx! {
-        div { padding: "0.5rem", position: "relative",
+        div { padding: "0.5rem", position: "relative", onmouseenter: move |_| {},
             div { font_size: "1.5rem",
-                a { href: url, "{title}" }
+                a { href: url, onfocus: move |_event| {
+                  *preview_state.write() = PreviewState::Loaded(StoryPageData {
+                    item: story(),
+                    comments: vec![],
+                  });
+                }, "{title}" }
                 a {
                     color: "gray",
                     href: "https://news.ycombinator.com/from?site={hostname}",
