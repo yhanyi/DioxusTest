@@ -5,7 +5,7 @@ use dioxus_logger::tracing::{ info, Level };
 
 pub mod components;
 use components::high_five::HighFiveCounter;
-use components::story_list::StoryListing;
+use components::story_list::{ StoryItem, StoryListing };
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 enum Route {
@@ -47,6 +47,19 @@ fn Home() -> Element {
             "Go to blog number {count} here"
         }
         HighFiveCounter {count}
-        StoryListing {}
+        StoryListing {
+          story: StoryItem {
+            id: 0,
+            title: "Hello".to_string(),
+            url: None,
+            text:None,
+            by: "Me".to_string(),
+            score: 0,
+            descendants: 0,
+            time: chrono::Utc::now(),
+            children: vec![],
+            r#type: "".to_string(),
+          }
+        }
     }
 }
