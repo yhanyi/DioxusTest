@@ -9,6 +9,8 @@ dependencies = [
  "chrono",
  "dioxus",
  "dioxus-logger",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
