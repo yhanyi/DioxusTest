@@ -2,7 +2,10 @@
 
 use dioxus::prelude::*;
 use dioxus_logger::tracing::{ info, Level };
-use chrono;
+
+pub mod components;
+use components::high_five::HighFiveCounter;
+use components::story_list::StoryListing;
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 enum Route {
@@ -35,35 +38,15 @@ fn Blog(id: i32) -> Element {
 
 #[component]
 fn Home() -> Element {
-    let mut count = use_signal(|| 0);
-
+    let count = use_signal(|| 0);
     rsx! {
         Link {
             to: Route::Blog {
                 id: count()
             },
-            "Go to blog here"
+            "Go to blog number {count} here"
         }
-        div {
-            h1 { "High-five counter: {count}" }
-            button { onclick: move |_| count += 1, "Up high!" }
-            button { onclick: move |_| count -= 1, "Down low!" }
-        }
+        HighFiveCounter {count}
         StoryListing {}
-    }
-}
-
-#[component]
-fn StoryListing() -> Element {
-    let title = "title";
-    let by = "author";
-    let score = 0;
-    let time = chrono::Utc::now();
-    let comments = "comments";
-
-    rsx! {
-        div {padding: "0.5rem", position:"relative",
-              h1{"{title} by {by} ({score}) {time} {comments}"}
-            }
     }
 }
