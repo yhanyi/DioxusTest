@@ -6,7 +6,7 @@ use dioxus_logger::tracing::{ info, Level };
 pub mod components;
 use components::story_list::{ StoryItem, StoryListing };
 use components::stories::Stories;
-use components::preview::Preview;
+use components::preview::{ PreviewState, Preview };
 
 fn main() {
     // Init logger
@@ -16,6 +16,7 @@ fn main() {
 }
 
 fn App() -> Element {
+    use_context_provider(|| Signal::new(PreviewState::Unset));
     rsx! {
         div { display: "flex", flex_direction: "row", width: "100%", font_family: "Arial, sans-serif",
             div { width: "50%", Stories {} }
